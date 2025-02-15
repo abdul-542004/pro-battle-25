@@ -20,7 +20,7 @@ function StickerForm() {
     formData.append('is_private', isPrivate); // Include the is_private field
 
     try {
-      const response = await axios.post('/api/stickers/create/', formData, {
+      const response = await axios.post('http://127.0.0.1:8000/api/stickers/create/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -76,7 +76,7 @@ function StickerForm() {
         <label className="block mb-2 font-bold">Image</label>
         <input
           type="file"
-          className="w-full p-2 border rounded"
+          className="w-full p-2 rounded"
           onChange={(e) => setImage(e.target.files[0])}
           required
         />

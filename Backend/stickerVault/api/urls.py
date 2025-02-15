@@ -11,10 +11,12 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
 
     path('stickers/', views.StickerListView.as_view(), name='sticker-list'),
+    path('stickers/private/', views.PrivateStickerListView.as_view(), name='private-sticker-list'),
     path('stickers/create/', views.StickerCreateView.as_view(), name='sticker-create'),
     path('stickers/<int:pk>/', views.StickerDetail.as_view(), name='sticker-detail'),
+    path('stickers/<int:sticker_id>/like/', views.like_sticker, name='like_sticker'),
 
-    
+
     path('categories/', views.CategoryList.as_view(), name='category-list'),
     path('tags/', views.TagList.as_view(), name='tag-list'),
 ]
