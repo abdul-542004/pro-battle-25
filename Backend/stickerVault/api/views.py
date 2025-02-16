@@ -31,7 +31,7 @@ class RegisterView(APIView):
             return Response({"error": "Username already taken."}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(username=username, password=password, email=email)
-        return Response({"message": "User registered successfully!"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "User registered successfully! You can now login in."}, status=status.HTTP_201_CREATED)
 
 
 # views that let users view categories
