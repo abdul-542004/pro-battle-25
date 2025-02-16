@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from 'axios';
-
-
-import fileDownload from 'js-file-download';
-
 
 const StickerDetailPage = () => {
     const { id } = useParams();
     const [sticker, setSticker] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const userId = 1; // Replace with actual user ID
+    const userId = 1; // Replace with the actual logged-in user's ID (dynamic)
 
+    const yourToken = localStorage.getItem("access_token");
+
+    // Fetch sticker details
     useEffect(() => {
         const fetchSticker = async () => {
             try {
@@ -32,32 +30,39 @@ const StickerDetailPage = () => {
         fetchSticker();
     }, [id]);
 
-    const handleLikeToggle = async () => {
+    // Like or unlike the sticker
+    const likeSticker = async (stickerId) => {
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/stickers/${id}/like/`, {
-                method: 'POST',
+            const response = await fetch(`http://127.0.0.1:8000/api/stickers/${stickerId}/like/`, {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                    "Authorization": `Bearer ${yourToken}`,  // Token for authentication
+                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ user_id: userId }),
             });
-            if (!response.ok) {
-                throw new Error("Failed to update like status");
+
+            if (response.ok) {
+                console.log("Sticker liked/unliked successfully!");
+
+                // Toggle the like status in the UI
+                setSticker((prevSticker) => ({
+                    ...prevSticker,
+                    likes: prevSticker.likes.includes(userId)
+                        ? prevSticker.likes.filter((id) => id !== userId) // Unlike
+                        : [...prevSticker.likes, userId], // Like
+                }));
+            } else {
+                console.error("Failed to like/unlike sticker");
             }
-            const updatedSticker = await response.json();
-            setSticker(updatedSticker);
-        } catch (err) {
-            setError(err.message);
+        } catch (error) {
+            console.error("Error liking/unliking sticker:", error);
         }
     };
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
 
-    const isLiked = sticker.likes.includes(userId);
-
-    
+    const isLiked = sticker && sticker.likes.includes(userId);
 
     return (
         <div className="max-w-2xl mx-auto p-6">
@@ -70,7 +75,7 @@ const StickerDetailPage = () => {
             <p className="text-gray-700">{sticker.description}</p>
             <p className="font-semibold mt-4">Category: {sticker.category}</p>
 
-            {/* Tags displayed with hashtags and space-separated */}
+            {/* Tags */}
             <div className="mt-2">
                 <span className="font-semibold">Tags: </span>
                 {sticker.tags.map((tag, index) => (
@@ -80,24 +85,24 @@ const StickerDetailPage = () => {
                 ))}
             </div>
 
-            
-
-
-            {/* Like button */}
+            {/* Like Button */}
             <button
-                className="mt-4 ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={handleLikeToggle}
+                className="mt-4 ml-4 px-4 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 flex items-center"
+                onClick={() => likeSticker(sticker.id)}
             >
                 <img
-                    src={isLiked ? 'http://127.0.0.1:8000/media/stickers/liked-icon.png' : 'http://127.0.0.1:8000/media/stickers/not-liked-icon.png'}
-                    alt={isLiked ? 'Liked' : 'Not Liked'}
-                    className="w-6 h-6"
+                    src={
+                        isLiked
+                            ? "http://127.0.0.1:8000/media/stickers/liked-icon.png"
+                            : "http://127.0.0.1:8000/media/stickers/not-liked-icon.png"
+                    }
+                    alt={isLiked ? "Liked" : "Not Liked"}
+                    className="w-6 h-6 mr-2"
                 />
+                {isLiked ? "Unlike" : "Like"}
             </button>
         </div>
     );
 };
 
 export default StickerDetailPage;
-
-

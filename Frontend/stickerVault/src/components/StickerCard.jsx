@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const StickerCard = ({ sticker }) => {
   return (
     <Link to={`/stickers/${sticker.id}`} className="block">
-      <div className="bg-white shadow-lg rounded-xl p-4 flex flex-col items-center w-56 h-auto">
+      <div className="bg-white shadow-lg rounded-xl p-4 flex flex-col items-center w-56 h-auto min-h-[80px]">
         <img
           src={sticker.image}
           alt={sticker.name}

@@ -3,11 +3,16 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 import { Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from 'react-router-dom'
-import LandingPage from './components/LandingPage';
-import Login from './components/Login';
-import Register from './components/Register';
-import Layout from './Layout';
+import Layout from './Layout.jsx'
+import LandingPage from './components/LandingPage.jsx'
+import Login from './components/Login.jsx'
+import Register from './components/Register.jsx'
+import Trending from './components/Trending.jsx'
 import StickerDetailPage from './components/StickerDetailPage.jsx'
+import Categories from './components/Categories.jsx'
+
+
+
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -15,8 +20,9 @@ const router = createBrowserRouter(
       <Route path='' element={<LandingPage />} />
       <Route path='login' element={<Login />} />
       <Route path='register' element={<Register />} />
-      <Route path='/stickers/:id' element={<StickerDetailPage />} />
-      
+      <Route path='trending' element={<Trending />} />
+      <Route path='stickers/:id' element={<StickerDetailPage />} />
+      <Route path='categories' element={<Categories />} />
     </Route>
   )
 )

@@ -1,14 +1,15 @@
 import React from 'react'
-import Header from './components/Navbar'
+import Navbar from './components/Navbar'
 import { Outlet, useLocation } from 'react-router-dom'
+
 
 function Layout() {
   const location = useLocation();
-  const hideHeader = location.pathname === '/login' || location.pathname === '/register';
+  const hideNavbar = location.pathname === '/login' || location.pathname === '/register';
 
   return (
     <>
-      {!hideHeader && <Header />}
+      {!hideNavbar && <Navbar />}
       <Outlet />
     </>
   )

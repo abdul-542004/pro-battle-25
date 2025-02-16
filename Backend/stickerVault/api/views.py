@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import serializers
 from django.db.models import Prefetch
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from django.core.files import File
 from django.http import HttpResponse
@@ -100,15 +101,14 @@ class StickerDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsOwnerOrReadOnly]
 
     def get_queryset(self):
-        """
-        Only allow public stickers to be viewed by everyone.
-        Private stickers can only be accessed by their owner.
-        """
         if self.request.user.is_authenticated:
-            # If the user is authenticated, they can view their private stickers
-            return Sticker.objects.filter(owner=self.request.user).select_related('owner').prefetch_related('tags') | Sticker.objects.filter(is_private=False).select_related('owner').prefetch_related('tags')
-        # If the user is not authenticated, they can only see public stickers
-        return Sticker.objects.filter(is_private=False).select_related('owner').prefetch_related('tags')
+            # Authenticated users can see their own private stickers and all public stickers
+            return Sticker.objects.filter(
+                models.Q(owner=self.request.user) | models.Q(is_private=False)
+            ).select_related('owner', 'category').prefetch_related('tags')
+        # Unauthenticated users can only see public stickers
+        return Sticker.objects.filter(is_private=False).select_related('owner', 'category').prefetch_related('tags')
+
 
 
 class TrendingStickerListView(generics.ListAPIView):
@@ -117,16 +117,25 @@ class TrendingStickerListView(generics.ListAPIView):
     serializer_class = StickerSerializer
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def like_sticker(request, sticker_id):
-    sticker = get_object_or_404(Sticker, id=sticker_id)
-    if request.user in sticker.likes.all():
-        sticker.likes.remove(request.user)
-        return Response({"message": "Sticker unliked."})
-    else:
-        sticker.likes.add(request.user)
-        return Response({"message": "Sticker liked."})
+
+
+class LikeStickerView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, sticker_id):
+        try:
+            sticker = Sticker.objects.get(id=sticker_id)
+            # Add the current user to the likes field
+            if request.user in sticker.likes.all():
+                sticker.likes.remove(request.user)
+                return Response({"message": "Sticker unliked successfully"}, status=status.HTTP_200_OK)
+            else:
+                sticker.likes.add(request.user)
+                return Response({"message": "Sticker liked successfully"}, status=status.HTTP_200_OK)
+
+        except Sticker.DoesNotExist:
+            return Response({"error": "Sticker not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 class StickersByCategoryView(APIView):

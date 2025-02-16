@@ -14,7 +14,7 @@ urlpatterns = [
     path('stickers/private/', views.PrivateStickerListView.as_view(), name='private-sticker-list'),
     path('stickers/create/', views.StickerCreateView.as_view(), name='sticker-create'),
     path('stickers/<int:pk>/', views.StickerDetail.as_view(), name='sticker-detail'),
-    path('stickers/<int:sticker_id>/like/', views.like_sticker, name='like_sticker'),
+    path('stickers/<int:sticker_id>/like/', views.LikeStickerView.as_view(), name='like-sticker'),
     path('stickers/trending/', views.TrendingStickerListView.as_view(), name='trending-sticker-list'),
 
 

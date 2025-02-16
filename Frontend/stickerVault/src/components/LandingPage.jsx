@@ -2,16 +2,18 @@ import React, { useEffect, useState, useRef } from "react";
 import StickerCard from "./StickerCard";
 import Navbar from "./Navbar";
 import Button from "./Button";
+
 const LandingPage = () => {
   const [stickers, setStickers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef(null);
 
   useEffect(() => {
     const fetchStickers = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/stickers/");
+        const response = await fetch(`http://127.0.0.1:8000/api/stickers/?search=${searchQuery}`);
         if (!response.ok) {
           throw new Error("Failed to fetch stickers");
         }
@@ -25,7 +27,11 @@ const LandingPage = () => {
     };
 
     fetchStickers();
-  }, []);
+  }, [searchQuery]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -49,8 +55,7 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-yellow-200">
-      {/* Navbar */}
-      <Navbar />
+      
 
       {/* Hero Section */}
       <section
@@ -63,6 +68,8 @@ const LandingPage = () => {
         <input
           type="text"
           placeholder="Search Stickers..."
+          value={searchQuery}
+          onChange={handleSearchChange}
           className="mt-4 px-4 py-2 rounded-lg shadow-md w-1/2 bg-amber-100"
         />
         <div className="mt-4">
