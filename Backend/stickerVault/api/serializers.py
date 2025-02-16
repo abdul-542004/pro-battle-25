@@ -24,6 +24,10 @@ class TagSerializer(ModelSerializer):
         fields = '__all__'
 
 
+
+
+
+
 class StickerSerializer(ModelSerializer):
     tags = SlugRelatedField(
         many=True,
@@ -61,4 +65,4 @@ class StickerSerializer(ModelSerializer):
 
         return sticker
 
-   
+

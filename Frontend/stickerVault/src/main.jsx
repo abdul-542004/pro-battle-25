@@ -6,8 +6,8 @@ import { Route, RouterProvider, createBrowserRouter, createRoutesFromElements } 
 import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
-import StickerDetailPage from './components/StickerDetailPage';
 import Layout from './Layout';
+import StickerDetailPage from './components/StickerDetailPage.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -15,7 +15,7 @@ const router = createBrowserRouter(
       <Route path='' element={<LandingPage />} />
       <Route path='login' element={<Login />} />
       <Route path='register' element={<Register />} />
-      <Route path="/stickers/:id" element={<StickerDetailPage />} />
+      <Route path='/stickers/:id' element={<StickerDetailPage />} />
       
     </Route>
   )

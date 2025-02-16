@@ -1,17 +1,15 @@
 import React from 'react'
-import Header from './components/Header'
-import Footer from './components/Footer'
+import Header from './components/Navbar'
 import { Outlet, useLocation } from 'react-router-dom'
 
 function Layout() {
   const location = useLocation();
-  const hideHeaderFooter = location.pathname === '/login' || location.pathname === '/register';
+  const hideHeader = location.pathname === '/login' || location.pathname === '/register';
 
   return (
     <>
-      {!hideHeaderFooter && <Header />}
+      {!hideHeader && <Header />}
       <Outlet />
-      {!hideHeaderFooter && <Footer />}
     </>
   )
 }

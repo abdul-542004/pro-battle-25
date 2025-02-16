@@ -28,7 +28,7 @@ class Sticker(models.Model):
     is_private = models.BooleanField(default=True)        # Private or public sticker
     created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for creation
     updated_at = models.DateTimeField(auto_now=True)      # Timestamp for updates
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True)  # Category of sticker
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, related_name="stickers")  # Category of sticker
     tags = models.ManyToManyField(Tag, related_name='tags', blank=True)  # Tags for sticker
 
     likes = models.ManyToManyField(User, related_name='likes', blank=True)  # Users who liked the sticker

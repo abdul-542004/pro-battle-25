@@ -15,8 +15,12 @@ urlpatterns = [
     path('stickers/create/', views.StickerCreateView.as_view(), name='sticker-create'),
     path('stickers/<int:pk>/', views.StickerDetail.as_view(), name='sticker-detail'),
     path('stickers/<int:sticker_id>/like/', views.like_sticker, name='like_sticker'),
+    path('stickers/trending/', views.TrendingStickerListView.as_view(), name='trending-sticker-list'),
 
 
     path('categories/', views.CategoryList.as_view(), name='category-list'),
+    path('stickers-by-category/', views.StickersByCategoryView.as_view(), name='stickers-by-category'),
+
     path('tags/', views.TagList.as_view(), name='tag-list'),
+
 ]
