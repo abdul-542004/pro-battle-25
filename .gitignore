@@ -6,4 +6,3 @@ Frontend/node_modules/
 
 # Ignore database 
 Backend/stickerVault/db.sqlite3
-

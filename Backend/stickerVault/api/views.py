@@ -1,22 +1,25 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse
-from django.core.files import File
-from django.db.models import Q, Prefetch
-
-from rest_framework import generics, filters, status, serializers
-from rest_framework.response import Response
+from django.shortcuts import render
+from rest_framework import generics, filters
+from .models import Sticker
+from .serializers import StickerSerializer, CategorySerializer,TagSerializer
+from .models import Category,User,Tag
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
+from .permissions import IsOwnerOrReadOnly
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework import serializers
+from django.db.models import Prefetch
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .models import Sticker, Category, User, Tag
-from .serializers import StickerSerializer, CategorySerializer, TagSerializer
-from .permissions import IsOwnerOrReadOnly
+from django.core.files import File
+from django.http import HttpResponse
 from stickerVault.settings import BASE_DIR, MEDIA_ROOT
 
-
+# Create your views here.
 
 # register the user
 class RegisterView(APIView):
@@ -64,12 +67,10 @@ class StickerListView(generics.ListAPIView):
 
 
 class PrivateStickerListView(generics.ListAPIView):
-    """
-    Returns all stickers uploaded by the authenticated user
-    """
+    # All stickers uploaded by the authenticated user
     serializer_class = StickerSerializer
     permission_classes = [IsAuthenticated]
-    
+    pagination_class = StickerPagination
 
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'tags__name', 'category__name', 'description']
@@ -95,31 +96,23 @@ class StickerCreateView(generics.CreateAPIView):
 
 
 # views that let users view and delete stickers
-
 class StickerDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = StickerSerializer
     permission_classes = [IsOwnerOrReadOnly]
 
-    def get_object(self):
-        """
-        Retrieve a sticker, ensuring that private stickers are only accessible by their owner.
-        """
-        user = self.request.user
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            # Authenticated users can see their own private stickers and all public stickers
+            return Sticker.objects.filter(
+                models.Q(owner=self.request.user) | models.Q(is_private=False)
+            ).select_related('owner', 'category').prefetch_related('tags')
+        # Unauthenticated users can only see public stickers
+        return Sticker.objects.filter(is_private=False).select_related('owner', 'category').prefetch_related('tags')
 
-        # If authenticated, allow access to owned private stickers and all public ones
-        if user.is_authenticated:
-            queryset = Sticker.objects.filter(Q(owner=user) | Q(is_private=False))
-        else:
-            # If unauthenticated, allow access only to public stickers
-            queryset = Sticker.objects.filter(is_private=False)
 
-        # Retrieve the sticker based on the provided primary key (pk)
-        return get_object_or_404(queryset, pk=self.kwargs["pk"])
-    
 
-    
 class TrendingStickerListView(generics.ListAPIView):
-    """Show the top 10 most liked stickers"""
+    # Show the top 10 most liked stickers
     queryset = Sticker.objects.filter(is_private=False).select_related('owner').prefetch_related('tags').order_by('-likes')[:10]
     serializer_class = StickerSerializer
 
@@ -144,21 +137,21 @@ class LikeStickerView(APIView):
             return Response({"error": "Sticker not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
+
 class StickersByCategoryView(APIView):
     """
     API view to return all stickers grouped by category.
     """
     def get(self, request):
         # Prefetch stickers for each category
-        categories = Category.objects.prefetch_related('stickers').filter(stickers__is_private=False).distinct()
-
-       
+        categories = Category.objects.prefetch_related(
+            Prefetch('stickers', queryset=Sticker.objects.filter(is_private=False))
+        )
 
         data = []
         for category in categories:
             stickers = category.stickers.all()  # Get all stickers for this category
-            serialized_stickers = StickerSerializer(stickers, many=True, context={'request': request}).data
-
+            serialized_stickers = StickerSerializer(stickers, many=True).data
             data.append({
                 'category': category.name,
                 'stickers': serialized_stickers

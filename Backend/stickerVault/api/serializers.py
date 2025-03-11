@@ -1,5 +1,9 @@
-from rest_framework.serializers import ModelSerializer, SlugRelatedField, SerializerMethodField
+from rest_framework.serializers import ModelSerializer
 from .models import User, Category, Tag, Sticker
+from django.core.exceptions import ValidationError
+from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer, SlugRelatedField,SerializerMethodField
+from rest_framework.exceptions import ValidationError
 
 
 class UserSerializer(ModelSerializer):
@@ -7,17 +11,21 @@ class UserSerializer(ModelSerializer):
         model = User
         fields = '__all__'
 
-
 class CategorySerializer(ModelSerializer):
+
+
     class Meta:
         model = Category
         fields = '__all__'
-
 
 class TagSerializer(ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
+
+
+
+
 
 
 class StickerSerializer(ModelSerializer):
@@ -32,21 +40,10 @@ class StickerSerializer(ModelSerializer):
         queryset=Category.objects.all(),
         required=False
     )
-    image = SerializerMethodField()  # Convert relative image path to absolute URL
 
     class Meta:
         model = Sticker
         fields = '__all__'
-        
-
-    def get_image(self, obj):
-        """
-        Convert relative image path to absolute URL
-        """
-        request = self.context.get('request')
-        if obj.image:
-            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
-        return None
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags', [])
@@ -67,3 +64,5 @@ class StickerSerializer(ModelSerializer):
             sticker.save()
 
         return sticker
+
+

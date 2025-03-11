@@ -2,16 +2,16 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function Login() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  async function handleLogin(formData) {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     const response = await fetch("http://localhost:8000/api/token/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: formData.get("username"),
-        password: formData.get("password"),
-      }),
+      body: JSON.stringify({ username, password }),
     });
 
     const data = await response.json();
@@ -19,11 +19,12 @@ export default function Login() {
       localStorage.setItem("access_token", data.access);
       localStorage.setItem("refresh_token", data.refresh);
       setMessage("Login successful!");
+      // redirect to home page
       window.location.href = "/";
     } else {
       setMessage(data.detail || "Login failed.");
     }
-  }
+  };
 
   return (
     <div
@@ -31,15 +32,17 @@ export default function Login() {
       style={{ backgroundImage: `url('/public/background.png')` }}
     >
       <div className="bg-gradient-to-r from-yellow-300 to-pink-500 p-8 rounded-xl shadow-xl w-96 text-white border-4 border-amber-400">
-        <h2 className="atma-medium text-3xl font-bold mb-6 drop-shadow-md font-fuzzybubbles text-center">
+        <h2 className="text-3xl font-bold mb-6 drop-shadow-md font-fuzzybubbles text-center">
           🚀 Welcome to StickerVault
         </h2>
-        <form action={handleLogin}>
+        <form onSubmit={handleLogin}>
           <div className="mb-4">
             <label className="block text-white text-sm font-bold mb-2">Username</label>
             <input
               type="text"
               name="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-2 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-4 focus:ring-yellow-300"
               placeholder="Enter your username"
               required
@@ -50,6 +53,8 @@ export default function Login() {
             <input
               type="password"
               name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 rounded-lg bg-gray-100 text-gray-900 focus:outline-none focus:ring-4 focus:ring-yellow-300"
               placeholder="Enter your password"
               required
@@ -62,7 +67,11 @@ export default function Login() {
             Login 🔥
           </button>
         </form>
-        {message && <p className="text-sm text-center mt-4">{message}</p>}
+        {message && (
+          <p className="text-sm text-center mt-4">
+            {message}
+          </p>
+        )}
         <p className="text-sm text-white text-center mt-4">
           Don't have an account? <Link to="/register" className="text-yellow-300 hover:underline">Register</Link>
         </p>
