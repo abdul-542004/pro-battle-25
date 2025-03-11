@@ -23,7 +23,7 @@ function StickerForm() {
       const response = await axios.post('http://127.0.0.1:8000/api/stickers/create/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          "Authorization": `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
       alert('Sticker created successfully!');
@@ -34,7 +34,7 @@ function StickerForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 bg-white shadow-md rounded-lg">
+    <form onSubmit={handleSubmit} className="max-w-md mt-24 mx-auto p-4 bg-white shadow-md rounded-lg">
       <h2 className="text-2xl font-bold mb-4">Create Sticker</h2>
       <div className="mb-4">
         <label className="block mb-2 font-bold">Name</label>
@@ -108,7 +108,7 @@ function StickerForm() {
           <label htmlFor="public">Public</label>
         </div>
       </div>
-      <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+      <button type="submit" className="px-4 py-2  bg-orange-400 hover:bg-orange-500 text-white rounded ">
         Create Sticker
       </button>
     </form>

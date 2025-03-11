@@ -1,0 +1,9 @@
+# Ignore node_modules in frontend
+Frontend/stickerVault/node_modules/
+Frontend/node_modules/
+
+
+
+# Ignore database 
+Backend/stickerVault/db.sqlite3
+

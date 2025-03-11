@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+.atma-medium {
+    font-family: "Atma", system-ui;
+    font-weight: 700;
+    font-style: normal;
+  }

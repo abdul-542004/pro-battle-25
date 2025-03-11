@@ -10,6 +10,8 @@ import Register from './components/Register.jsx'
 import Trending from './components/Trending.jsx'
 import StickerDetailPage from './components/StickerDetailPage.jsx'
 import Categories from './components/Categories.jsx'
+import CreateFrom from './components/CreateForm.jsx'
+import UserCollection from './components/UserCollection.jsx'
 
 
 
@@ -21,8 +23,10 @@ const router = createBrowserRouter(
       <Route path='login' element={<Login />} />
       <Route path='register' element={<Register />} />
       <Route path='trending' element={<Trending />} />
+      <Route path='collection' element={<UserCollection/>}/>
       <Route path='stickers/:id' element={<StickerDetailPage />} />
       <Route path='categories' element={<Categories />} />
+      <Route path='create' element={<CreateFrom />} />
     </Route>
   )
 )
