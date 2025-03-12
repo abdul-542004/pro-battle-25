@@ -3,6 +3,5 @@ Frontend/stickerVault/node_modules/
 Frontend/node_modules/
 
 
-
-# Ignore database 
+# Ignore database and media files
 Backend/stickerVault/db.sqlite3
