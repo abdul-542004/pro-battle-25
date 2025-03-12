@@ -19,6 +19,10 @@ const LandingPage = () => {
         }
         const data = await response.json();
         setStickers(data.results);
+
+
+        
+
       } catch (error) {
         setError(error.message);
       } finally {
@@ -55,7 +59,7 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-yellow-200">
-      
+
 
       {/* Hero Section */}
       <section

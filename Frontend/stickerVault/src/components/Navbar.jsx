@@ -10,7 +10,7 @@ const Navbar = ({ darkMode, setDarkMode }) => {
         <Link to="/" className="px-4 py-2 rounded-lg transition duration-300 hover:bg-pink-700">Home</Link>
         <Link to="/trending" className="px-4 py-2 rounded-lg transition duration-300 hover:bg-pink-700">Trending</Link>
         <Link to="/categories" className="px-4 py-2 rounded-lg transition duration-300 hover:bg-pink-700">Categories</Link>
-        <Link to="#" className="px-4 py-2 rounded-lg transition duration-300 hover:bg-pink-700">My Collection</Link>
+        <Link to="collection" className="px-4 py-2 rounded-lg transition duration-300 hover:bg-pink-700">My Collection</Link>
         <Link to="/login" className="px-4 py-2 rounded-lg transition duration-300 hover:bg-pink-700">Login</Link>
         <button onClick={() => setDarkMode(!darkMode)} className="px-4 py-2">
           {darkMode ? <Sun size={20} /> : <Moon size={20} />}

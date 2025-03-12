@@ -14,7 +14,12 @@ const StickerDetailPage = () => {
     useEffect(() => {
         const fetchSticker = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/stickers/${id}?format=json`);
+                const response = await fetch(`http://127.0.0.1:8000/api/stickers/${id}?format=json`,{
+                    headers: {
+                        "Authorization": `Bearer ${yourToken}`,
+                    },
+                    
+                });
                 if (!response.ok) {
                     throw new Error("Sticker not found");
                 }
