@@ -13,7 +13,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Sticker, Category, User, Tag
-from .serializers import StickerSerializer, CategorySerializer, TagSerializer
+from .serializers import StickerSerializer, CategorySerializer, TagSerializer, StickerCreateSerializer
 from .permissions import IsOwnerOrReadOnly
 from stickerVault.settings import BASE_DIR, MEDIA_ROOT
 
@@ -79,17 +79,32 @@ class PrivateStickerListView(generics.ListAPIView):
 
     
 
-# View for creating stickers (only accessible to authenticated users)
 class StickerCreateView(generics.CreateAPIView):
+    """
+    API view to create a new sticker.
+    """
     queryset = Sticker.objects.all()
-    serializer_class = StickerSerializer
+    serializer_class = StickerCreateSerializer  
     permission_classes = [IsAuthenticated]
 
-    
-
-    # Automatically set the owner to the logged-in user
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        tags_data = self.request.data.get("tags", [])  # Get tags from request
+        category_name = self.request.data.get("category", None)  # Get category from request
+
+        # Create the sticker without tags and category
+        sticker = serializer.save(owner=self.request.user)
+
+        # Handle tags: create if not exist
+        if isinstance(tags_data, list):  # Ensure it's a list
+            for tag_name in tags_data:
+                tag, _ = Tag.objects.get_or_create(name=tag_name.strip())  # Create tag if not exists
+                sticker.tags.add(tag)  
+
+        # Handle category: create if not exist
+        if category_name:
+            category, _ = Category.objects.get_or_create(name=category_name.strip())
+            sticker.category = category
+            sticker.save()
 
 
 class StickerDetail(generics.RetrieveUpdateDestroyAPIView):

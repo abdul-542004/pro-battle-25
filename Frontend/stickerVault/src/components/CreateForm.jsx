@@ -1,60 +1,152 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-function StickerForm() {
+const CreateForm = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    category: "",
+    tags: "",
+    is_private: true,
+    image: null,
+  });
+
+  navigate = useNavigate();
+  const token = localStorage.getItem("access_token");
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFileChange = (e) => {
+    setFormData({ ...formData, image: e.target.files[0] });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    formData.set("tags", formData.get("tags").split(",").map(tag => tag.trim()));
-    formData.set("is_private", formData.get("is_private") === "true");
+
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("description", formData.description);
+    data.append("is_private", formData.is_private);
+    data.append("image", formData.image);
+    data.append("category", formData.category);
+
+    // Send tags as an array
+    formData.tags.split(",").forEach((tag) => data.append("tags", tag.trim()));
 
     try {
-      await axios.post("http://127.0.0.1:8000/api/stickers/create/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/stickers/create/",
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       alert("Sticker created successfully!");
+      console.log("Sticker created:", response.data);
+      // redirect to my collection component
+      navigate("/collection");
     } catch (error) {
-      console.error(error);
-      alert("Failed to create sticker.");
+      alert("Error creating sticker. Please try again.");
+      console.error("Error creating sticker:", error.response?.data || error.message);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-24 max-w-md mx-auto p-4 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Create Sticker</h2>
-      {[
-        { label: "Name", name: "name", type: "text", required: true },
-        { label: "Description", name: "description", type: "textarea" },
-        { label: "Tags (comma-separated)", name: "tags", type: "text" },
-        { label: "Category", name: "category", type: "text" },
-        { label: "Image", name: "image", type: "file", required: true },
-      ].map(({ label, name, type, required }) => (
-        <div key={name} className="mb-4">
-          <label className="block mb-2 font-bold">{label}</label>
-          {type === "textarea" ? (
-            <textarea name={name} className="w-full p-2 border rounded" />
-          ) : (
-            <input type={type} name={name} className="w-full p-2 border rounded" required={required} />
-          )}
+    <div className="max-w-lg mx-auto p-6 bg-white shadow-lg rounded-xl mt-24">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Create a New Sticker</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Sticker Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Sticker Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
         </div>
-      ))}
-      <div className="mb-4">
-        <label className="block mb-2 font-bold">Privacy</label>
-        {[{ id: "private", value: "true", label: "Private" }, { id: "public", value: "false", label: "Public" }].map(({ id, value, label }) => (
-          <div key={id} className="flex items-center mb-2">
-            <input type="radio" id={id} name="is_private" value={value} defaultChecked={value === "true"} className="mr-2" />
-            <label htmlFor={id}>{label}</label>
-          </div>
-        ))}
-      </div>
-      <button type="submit" className="atma-medium px-4 py-2 bg-gradient-to-r from-yellow-400 to-pink-600 hover:from-yellow-500 hover:to-pink-700 text-white rounded ">
-        Upload Sticker
-      </button>
-    </form>
-  );
-}
 
-export default StickerForm;
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        {/* Category */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Category</label>
+          <input
+            type="text"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        {/* Tags */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
+          <input
+            type="text"
+            name="tags"
+            value={formData.tags}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        {/* Private Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Private</label>
+          <select
+            name="is_private"
+            value={formData.is_private}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <option value={true}>Yes</option>
+            <option value={false}>No</option>
+          </select>
+        </div>
+
+        {/* Image Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Upload Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            required
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        {/* Submit Button */}
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition"
+          >
+            Create Sticker
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default CreateForm;

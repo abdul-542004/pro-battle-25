@@ -12,6 +12,7 @@ import StickerDetailPage from './components/StickerDetailPage.jsx'
 import Categories from './components/Categories.jsx'
 import CreateForm from './components/CreateForm.jsx'
 import UserCollection from './components/UserCollection.jsx'
+import Slider from './components/Slider.jsx'
 
 
 
@@ -26,6 +27,7 @@ const router = createBrowserRouter(
       <Route path='categories' element={<Categories />} />
       <Route path='create' element={<CreateForm />} />
       <Route path='collection' element={<UserCollection />} />
+      <Route path='slider' element={<Slider />} />
     </Route>
   )
 )
