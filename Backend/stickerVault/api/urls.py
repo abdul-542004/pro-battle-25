@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -24,3 +24,5 @@ urlpatterns = [
     path('tags/', views.TagList.as_view(), name='tag-list'),
 
 ]
+
+urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

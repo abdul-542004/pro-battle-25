@@ -2,7 +2,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.core.files import File
-from django.db.models import Q, Prefetch
+from django.db.models import Q, Prefetch, Count
 
 from rest_framework import generics, filters, status, serializers
 from rest_framework.response import Response
@@ -55,8 +55,12 @@ class StickerPagination(PageNumberPagination):
 
 # View for listing stickers (accessible by everyone)
 class StickerListView(generics.ListAPIView):
-    # Only show public stickers
-    queryset = Sticker.objects.filter(is_private=False).select_related('owner').prefetch_related('tags')
+    queryset = (
+        Sticker.objects
+        .filter(is_private=False)
+        .select_related('owner', 'category')  # ForeignKey fields
+        .prefetch_related('tags','likes')  # ManyToManyField
+    )
     serializer_class = StickerSerializer
     pagination_class = StickerPagination
 
@@ -65,19 +69,23 @@ class StickerListView(generics.ListAPIView):
 
 
 class PrivateStickerListView(generics.ListAPIView):
-    # All stickers uploaded by the authenticated user
+    """
+    API view to list all stickers owned by the authenticated user.
+    """
     serializer_class = StickerSerializer
     permission_classes = [IsAuthenticated]
 
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'tags__name', 'category__name', 'description']
 
-
     def get_queryset(self):
-        # Filter stickers by the authenticated user
-        return Sticker.objects.filter(owner=self.request.user).select_related('owner').prefetch_related('tags')
-
-    
+        return (
+            Sticker.objects
+            .filter(owner=self.request.user)
+            .select_related('owner', 'category')  # ForeignKey optimizations
+            .prefetch_related('tags', 'likes')  # ManyToMany optimizations
+        )
+   
 
 class StickerCreateView(generics.CreateAPIView):
     """
@@ -108,31 +116,42 @@ class StickerCreateView(generics.CreateAPIView):
 
 
 class StickerDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API view to retrieve, update or delete a sticker.
+    """
     serializer_class = StickerSerializer
     permission_classes = [IsOwnerOrReadOnly]
 
-    def get_object(self):
-        """
-        Retrieve a sticker, ensuring that private stickers are only accessible by their owner.
-        """
+    def get_queryset(self):
+        # Fetch stickers optimized with related data while ensuring that private stickers are only accessible by their owner.
         user = self.request.user
 
-        # If authenticated, allow access to owned private stickers and all public ones
-        if user.is_authenticated:
-            queryset = Sticker.objects.filter(Q(owner=user) | Q(is_private=False))
-        else:
-            # If unauthenticated, allow access only to public stickers
-            queryset = Sticker.objects.filter(is_private=False)
+        # Construct a filtered queryset
+        queryset = Sticker.objects.filter(Q(is_private=False) | Q(owner=user)).select_related('owner', 'category').prefetch_related('tags', 'likes')
 
-        # Retrieve the sticker based on the provided primary key (pk)
-        return get_object_or_404(queryset, pk=self.kwargs["pk"])
+        return queryset
+
+    def get_object(self):
+        # Retrieve a sticker while applying the optimized queryset.
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
+
+
+
 
 class TrendingStickerListView(generics.ListAPIView):
-    # Show the top 10 most liked stickers
-    queryset = Sticker.objects.filter(is_private=False).select_related('owner').prefetch_related('tags').order_by('-likes')[:10]
+    """
+    API view to show the top 10 most liked stickers.
+    """
     serializer_class = StickerSerializer
 
-
+    def get_queryset(self):
+        return (
+            Sticker.objects.filter(is_private=False)
+            .annotate(like_count=Count('likes'))  # Count likes
+            .order_by('-like_count')  # Sort by like count
+            .select_related('owner', 'category')  # Optimize ForeignKeys
+            .prefetch_related('tags', 'likes')  # Optimize ManyToMany fields
+        )[:10]  # Apply slicing inside `get_queryset` (not at class level)
 
 
 class LikeStickerView(APIView):
@@ -154,24 +173,29 @@ class LikeStickerView(APIView):
 
 
 
+
 class StickersByCategoryView(APIView):
     """
     API view to return all stickers grouped by category.
     """
+
     def get(self, request):
-        # Prefetch stickers for each category
+        # Fetch categories and prefetch stickers in one query
         categories = Category.objects.prefetch_related(
-            Prefetch('stickers', queryset=Sticker.objects.filter(is_private=False))
+            Prefetch(
+                'stickers',
+                queryset=Sticker.objects.filter(is_private=False).select_related('category', 'owner').prefetch_related('tags', 'likes'),
+                to_attr='prefetched_stickers'  # ✅ Avoids hitting DB multiple times
+            )
         )
 
-        data = []
-        for category in categories:
-            stickers = category.stickers.all()  # Get all stickers for this category
-            serialized_stickers = StickerSerializer(stickers, many=True, context={'request': request}).data
-            data.append({
+        # Serialize all stickers efficiently
+        data = [
+            {
                 'category': category.name,
-                'stickers': serialized_stickers
-            })
+                'stickers': StickerSerializer(category.prefetched_stickers, many=True, context={'request': request}).data
+            }
+            for category in categories
+        ]
 
         return Response(data)
-

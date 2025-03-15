@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     
     'rest_framework',
     'api',
+    'silk',
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'silk.middleware.SilkyMiddleware',
     
 
     'django.middleware.common.CommonMiddleware',

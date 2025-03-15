@@ -24,13 +24,11 @@ class StickerSerializer(ModelSerializer):
     tags = SlugRelatedField(
         many=True,
         slug_field='name',
-        queryset=Tag.objects.all(),
-        required=False
+        read_only=True  # ✅ Prevents extra queries by not fetching queryset
     )
     category = SlugRelatedField(
         slug_field='name',
-        queryset=Category.objects.all(),
-        required=False
+        read_only=True  # ✅ Prevents extra queries by not fetching queryset
     )
 
     class Meta:
